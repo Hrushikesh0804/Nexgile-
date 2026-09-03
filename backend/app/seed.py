@@ -574,10 +574,10 @@ def seed_db(db_session: Session = None):
                 db.commit()
 
         # 11. Seed Integration Connections & Field Mappings (Module 7)
-        conn_csv = db_session.query(IntegrationConnection).filter(IntegrationConnection.name == "Utility Meter CSV Feed").first()
+        conn_csv = db.query(IntegrationConnection).filter(IntegrationConnection.name == "Utility Meter CSV Feed").first()
         if not conn_csv:
-            org_item = db_session.query(Organization).first()
-            admin_item = db_session.query(User).filter(User.email == "admin@nexgile.com").first()
+            org_item = db.query(Organization).first()
+            admin_item = db.query(User).filter(User.email == "admin@nexgile.com").first()
 
             conn_csv = IntegrationConnection(
                 id="conn-csv-001",
@@ -588,7 +588,7 @@ def seed_db(db_session: Session = None):
                 org_id=org_item.id,
                 created_by=admin_item.id
             )
-            db_session.add(conn_csv)
+            db.add(conn_csv)
 
             conn_sap = IntegrationConnection(
                 id="conn-sap-001",
@@ -599,8 +599,8 @@ def seed_db(db_session: Session = None):
                 org_id=org_item.id,
                 created_by=admin_item.id
             )
-            db_session.add(conn_sap)
-            db_session.commit()
+            db.add(conn_sap)
+            db.commit()
 
             mapping_csv = FieldMapping(
                 id="map-csv-001",
@@ -615,13 +615,16 @@ def seed_db(db_session: Session = None):
                 org_id=org_item.id,
                 created_by=admin_item.id
             )
-            db_session.add(mapping_csv)
-            db_session.commit()
+            db.add(mapping_csv)
+            db.commit()
 
 
         # 12. Seed Platform Hardening Data (Module 8)
-        audit_log = db_session.query(AdminAuditLog).first()
+        audit_log = db.query(AdminAuditLog).first()
         if not audit_log:
+            org_item = db.query(Organization).first()
+            admin_item = db.query(User).filter(User.email == "admin@nexgile.com").first()
+
             log1 = AdminAuditLog(
                 action="INITIAL_SEED_COMPLETED",
                 target_type="Platform",
@@ -630,7 +633,7 @@ def seed_db(db_session: Session = None):
                 org_id=org_item.id,
                 created_by=admin_item.id
             )
-            db_session.add(log1)
+            db.add(log1)
 
             # Seed a sample Data Quality Flag for Console testing
             dq_flag = DataQualityFlag(
@@ -643,8 +646,9 @@ def seed_db(db_session: Session = None):
                 org_id=org_item.id,
                 created_by=admin_item.id
             )
-            db_session.add(dq_flag)
-            db_session.commit()
+            db.add(dq_flag)
+            db.commit()
+
 
         print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, regulatory frameworks, integration connections, platform audit logs, and superadmin!")
 

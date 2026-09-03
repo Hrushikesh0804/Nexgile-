@@ -5,7 +5,9 @@ import { Shell } from './core/components/Shell';
 import { LoginPage } from './modules/auth/LoginPage';
 import { AdminPage } from './modules/admin/AdminPage';
 import { CarbonAccountingPage } from './modules/carbon/CarbonAccountingPage';
+import { ProductsModulePage } from './modules/products/ProductsModulePage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 import { useAuthStore } from './core/store/authStore';
 import { 
   LayoutDashboard, Factory, Package, Users, Sparkles, 
@@ -68,23 +70,8 @@ export const App: React.FC = () => {
             <Route path="carbon" element={<CarbonAccountingPage />} />
 
 
-            <Route
-              path="products"
-              element={
-                <PlaceholderModulePage
-                  title="Product LCA & Carbon Footprint"
-                  moduleNumber={2}
-                  description="Bill of Materials (BOM) carbon allocation, cradle-to-gate LCA boundaries, and product-level footprinting."
-                  icon={Package}
-                  features={[
-                    'BOM component material carbon mapping',
-                    'Product Carbon Footprint (PCF) calculation',
-                    'Life Cycle Assessment boundary definitions',
-                    'Alternative material scenario analysis'
-                  ]}
-                />
-              }
-            />
+            <Route path="products" element={<ProductsModulePage />} />
+
 
             <Route
               path="suppliers"

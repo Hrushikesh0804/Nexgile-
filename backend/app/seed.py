@@ -3,7 +3,9 @@ from app.database import SessionLocal, engine, Base
 from app.models.tenant import Organization, Entity, Facility
 from app.models.auth import User, Role, Permission, UserOrgRole, role_permissions
 from app.models.carbon import EmissionFactor
+from app.models.products import Product, SKU, Material, BOM, LCA, PCF
 from app.models.lineage import LineageRecord
+
 
 from app.models.data_quality import DataQualityFlag
 from app.models.governance import EmissionFactorVersion, FormulaVersion, CalculationVersion
@@ -210,9 +212,99 @@ def seed_db(db_session: Session = None):
                 db.flush()
             factor_objs[f_key] = ef
 
-        db.commit()
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, and superadmin!")
+        # 6. Seed Materials, Products, SKUs, and BOMs
+        mat_alum = db.query(Material).filter(Material.name == "Virgin Aluminum 6061").first()
+        if not mat_alum:
+            mat_alum = Material(
+                name="Virgin Aluminum 6061",
+                category="Metals",
+                recycled_content_pct=0.0,
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(mat_alum)
+            
+        mat_steel = db.query(Material).filter(Material.name == "Structural Steel").first()
+        if not mat_steel:
+            mat_steel = Material(
+                name="Structural Steel",
+                category="Metals",
+                recycled_content_pct=15.0,
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(mat_steel)
 
+        mat_recycled_alum = db.query(Material).filter(Material.name == "100% Recycled Eco-Aluminum").first()
+        if not mat_recycled_alum:
+            mat_recycled_alum = Material(
+                name="100% Recycled Eco-Aluminum",
+                category="Metals",
+                recycled_content_pct=100.0,
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(mat_recycled_alum)
+
+        db.commit()
+
+        prod = db.query(Product).filter(Product.code == "PROD_SENSOR_X").first()
+        if not prod:
+            prod = Product(
+                name="DecarbX Pro Environmental Sensor",
+                code="PROD_SENSOR_X",
+                category="Consumer Electronics",
+                functional_unit="1 Sensor for 5 Years Operation",
+                description="Industrial IoT smart emission monitoring sensor unit",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(prod)
+            db.commit()
+            db.refresh(prod)
+
+            sku = SKU(
+                product_id=prod.id,
+                sku_code="SKU-DXS-001",
+                name="DecarbX Pro Sensor Standard Pack",
+                weight_kg=1.8,
+                unit="PCS",
+                org_id=org.id
+            )
+            db.add(sku)
+
+            # BOM Items
+            bom1 = BOM(
+                product_id=prod.id,
+                material_id=mat_alum.id,
+                component_name="Aluminum Enclosure Shell",
+                quantity=1.2,
+                unit="kg",
+                loss_rate_pct=5.0,
+                org_id=org.id
+            )
+            bom2 = BOM(
+                product_id=prod.id,
+                material_id=mat_steel.id,
+                component_name="Mounting Bracket",
+                quantity=0.5,
+                unit="kg",
+                loss_rate_pct=2.0,
+                org_id=org.id
+            )
+            db.add_all([bom1, bom2])
+
+            lca = LCA(
+                product_id=prod.id,
+                name="Cradle-to-Gate LCA Baseline",
+                boundary_type="cradle-to-gate",
+                system_boundary_description="Includes raw material extraction, refining, and facility assembly",
+                org_id=org.id
+            )
+            db.add(lca)
+            db.commit()
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, and superadmin!")
     finally:
         if should_close:
             db.close()

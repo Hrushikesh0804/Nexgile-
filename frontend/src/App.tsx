@@ -8,7 +8,9 @@ import { CarbonAccountingPage } from './modules/carbon/CarbonAccountingPage';
 import { ProductsModulePage } from './modules/products/ProductsModulePage';
 import { SuppliersModulePage } from './modules/suppliers/SuppliersModulePage';
 import { AIAnalyticsModulePage } from './modules/ai_analytics/AIAnalyticsModulePage';
+import { DashboardsFinanceModulePage } from './modules/dashboards/DashboardsFinanceModulePage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 
 
 
@@ -114,11 +116,10 @@ export const App: React.FC = () => {
                     'Internal Carbon Pricing (ICP) engine',
                     'Entity & Department carbon budgeting',
                     'Carbon credit & offset registry tracking',
-                    'Decarbonization project ROI analytics'
-                  ]}
-                />
-              }
-            />
+            <Route path="executive-dashboard" element={<DashboardsFinanceModulePage />} />
+            <Route path="operational-drilldown" element={<DashboardsFinanceModulePage />} />
+            <Route path="carbon-finance" element={<DashboardsFinanceModulePage />} />
+
 
             <Route
               path="data-quality"

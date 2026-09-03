@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
 from app.models.tenant import Organization, Entity, Facility
@@ -6,8 +7,10 @@ from app.models.carbon import EmissionFactor
 from app.models.products import Product, SKU, Material, BOM, LCA, PCF
 from app.models.suppliers import Supplier, Questionnaire, Submission, Scorecard
 from app.models.ai_analytics import ScenarioForecast, ReductionInitiative, DocumentIngestion
+from app.models.finance import CarbonBudget, InternalCarbonPrice, CreditOffset, ProjectEconomics, TCFDFinancialImpact
 from app.models.lineage import LineageRecord
 from app.database import mongo_db
+
 
 
 
@@ -442,10 +445,77 @@ def seed_db(db_session: Session = None):
             db.commit()
 
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, and superadmin!")
+        # 9. Seed Carbon Finance Data
+        budget = db.query(CarbonBudget).filter(CarbonBudget.fiscal_year == 2026).first()
+        if not budget:
+            fac = db.query(Facility).filter(Facility.org_id == org.id).first()
+            budget = CarbonBudget(
+                facility_id=fac.id if fac else None,
+                fiscal_year=2026,
+                allocated_co2e_kg=250000.0,
+                consumed_co2e_kg=157500.0,
+                status="ON_TRACK",
+                linked_initiative_id=init_solar.id if init_solar else None,
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+
+            icp_shadow = InternalCarbonPrice(
+                scenario_name="Corporate Shadow Carbon Price",
+                price_per_tco2e_usd=85.00,
+                price_type="SHADOW_PRICE",
+                effective_year=2026,
+                scope_coverage="Scope 1, Scope 2, Scope 3",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            icp_fee = InternalCarbonPrice(
+                scenario_name="Internal Carbon Fee (CapEx Re-investment)",
+                price_per_tco2e_usd=35.00,
+                price_type="CARBON_FEE",
+                effective_year=2026,
+                scope_coverage="Scope 1, Scope 2",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            offset1 = CreditOffset(
+                project_name="Rimba Raya Biodiversity Reserve REDD+ Project",
+                registry="Verra VCS",
+                serial_number="VCS-1184-2025-001-99823",
+                quantity_tco2e=500.0,
+                cost_per_tco2e_usd=18.50,
+                status="ACTIVE",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            offset2 = CreditOffset(
+                project_name="Northern Kenya Rangeland Carbon Project",
+                registry="Gold Standard",
+                serial_number="GS-4820-2024-884-10294",
+                quantity_tco2e=250.0,
+                cost_per_tco2e_usd=24.00,
+                status="RETIRED",
+                retirement_date=datetime.now(timezone.utc),
+                retirement_evidence_url="https://registry.goldstandard.org/credit-res/GS-4820-2024-884",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            tcfd1 = TCFDFinancialImpact(
+                risk_category="TRANSITION_POLICY",
+                scenario_climate="1.5C_NET_ZERO",
+                estimated_financial_loss_usd=450000.0,
+                mitigation_strategy="Accelerate Scope 2 renewable PPA procurement to eliminate carbon tax liability.",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add_all([budget, icp_shadow, icp_fee, offset1, offset2, tcfd1])
+            db.commit()
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, and superadmin!")
     finally:
         if should_close:
             db.close()
+
 
 
 

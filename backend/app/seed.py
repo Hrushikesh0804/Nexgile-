@@ -76,20 +76,33 @@ def seed_db(db_session: Session = None):
                 db.flush()
             perm_objs.append(perm)
 
-        # Assign all permissions to SuperAdmin role
+        # Assign permissions to roles
         super_role = role_objs["SuperAdmin"]
         for p in perm_objs:
             if p not in super_role.permissions:
                 super_role.permissions.append(p)
 
-        # Assign facility & carbon read/write to FacilityManager
-        fac_mgr_role = role_objs["FacilityManager"]
-        for p in perm_objs:
-            if p.code in ["carbon:read", "carbon:write", "facility:manage"]:
-                if p not in fac_mgr_role.permissions:
-                    fac_mgr_role.permissions.append(p)
+        # Analysts, CSOs, Facility Managers, Procurement, Finance, Auditors, Consultants
+        role_permission_map = {
+            "SustainabilityAnalyst": ["carbon:read", "carbon:write", "lineage:read", "facility:manage"],
+            "CSO": ["carbon:read", "lineage:read", "org:manage", "entity:manage"],
+            "FacilityManager": ["carbon:read", "carbon:write", "facility:manage"],
+            "ProcurementUser": ["carbon:read", "carbon:write", "lineage:read"],
+            "FinanceUser": ["carbon:read", "carbon:write", "lineage:read"],
+            "Auditor": ["carbon:read", "lineage:read"],
+            "Consultant": ["carbon:read", "carbon:write", "lineage:read"],
+            "Supplier": ["carbon:read", "carbon:write"]
+        }
+
+        for r_name, p_codes in role_permission_map.items():
+            r_obj = role_objs.get(r_name)
+            if r_obj:
+                for p in perm_objs:
+                    if p.code in p_codes and p not in r_obj.permissions:
+                        r_obj.permissions.append(p)
 
         db.commit()
+
 
         # 3. Seed Default Organization, Entity, Facility
         org = db.query(Organization).filter(Organization.code == "GLOBAL_DECARB").first()

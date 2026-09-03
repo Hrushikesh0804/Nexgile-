@@ -4,7 +4,10 @@ from app.models.tenant import Organization, Entity, Facility
 from app.models.auth import User, Role, Permission, UserOrgRole, role_permissions
 from app.models.carbon import EmissionFactor
 from app.models.products import Product, SKU, Material, BOM, LCA, PCF
+from app.models.suppliers import Supplier, Questionnaire, Submission, Scorecard
 from app.models.lineage import LineageRecord
+from app.database import mongo_db
+
 
 
 from app.models.data_quality import DataQualityFlag
@@ -304,10 +307,76 @@ def seed_db(db_session: Session = None):
             db.add(lca)
             db.commit()
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, and superadmin!")
+        # 7. Seed Suppliers & Questionnaires
+        sup_user = db.query(User).filter(User.email == "supplier@acme.com").first()
+        if not sup_user:
+            sup_user = User(
+                email="supplier@acme.com",
+                hashed_password=get_password_hash("SupplierPass123!"),
+                full_name="Acme Materials Vendor Representative",
+                is_active=True
+            )
+            db.add(sup_user)
+            db.commit()
+            db.refresh(sup_user)
+
+
+            supplier_role = db.query(Role).filter(Role.name == "Supplier").first()
+            if supplier_role:
+                db.add(UserOrgRole(user_id=sup_user.id, org_id=org.id, role_id=supplier_role.id))
+                db.commit()
+
+        sup = db.query(Supplier).filter(Supplier.code == "SUP-ACME-001").first()
+        if not sup:
+            sup = Supplier(
+                name="Acme Eco-Materials Corp",
+                code="SUP-ACME-001",
+                contact_email="supplier@acme.com",
+                country="Germany",
+                tier="Tier 1",
+                category="Raw Materials",
+                status="ACTIVE",
+                user_id=sup_user.id,
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(sup)
+            db.commit()
+            db.refresh(sup)
+
+            # Questionnaire Campaign
+            q = Questionnaire(
+                title="2025 Corporate Scope 3 GHG & Product Carbon Footprint Survey",
+                description="Mandatory annual ESG & carbon footprint disclosure campaign for key Tier-1 & Tier-2 suppliers.",
+                status="PUBLISHED",
+                languages_list=["EN", "DE", "FR", "ES", "ZH", "JA"],
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(q)
+            db.commit()
+            db.refresh(q)
+
+            # Seed Mongo Template
+            template_doc = {
+                "postgres_ref_id": q.id,
+                "title": q.title,
+                "fields": [
+                    {"field_id": "scope1_co2e", "label": "Scope 1 Direct CO2e (tCO2e)", "type": "number", "required": True},
+                    {"field_id": "scope2_co2e", "label": "Scope 2 Purchased Energy (tCO2e)", "type": "number", "required": True},
+                    {"field_id": "renewable_pct", "label": "% Renewable Electricity", "type": "number", "required": False},
+                    {"field_id": "evidence_doc", "label": "ISO 14064 Audit Certificate", "type": "file", "required": True}
+                ]
+            }
+            mongo_res = mongo_db.questionnaire_templates.insert_one(template_doc)
+            q.mongo_ref_id = str(mongo_res.inserted_id)
+            db.commit()
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, and superadmin!")
     finally:
         if should_close:
             db.close()
+
 
 
 if __name__ == "__main__":

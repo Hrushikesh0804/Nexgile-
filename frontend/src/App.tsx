@@ -6,7 +6,9 @@ import { LoginPage } from './modules/auth/LoginPage';
 import { AdminPage } from './modules/admin/AdminPage';
 import { CarbonAccountingPage } from './modules/carbon/CarbonAccountingPage';
 import { ProductsModulePage } from './modules/products/ProductsModulePage';
+import { SuppliersModulePage } from './modules/suppliers/SuppliersModulePage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 
 import { useAuthStore } from './core/store/authStore';
 import { 
@@ -73,23 +75,8 @@ export const App: React.FC = () => {
             <Route path="products" element={<ProductsModulePage />} />
 
 
-            <Route
-              path="suppliers"
-              element={
-                <PlaceholderModulePage
-                  title="Supplier Engagement & Scope 3"
-                  moduleNumber={3}
-                  description="Supplier onboarding, Mongo-backed flexible questionnaires, data validation, and scorecards."
-                  icon={Users}
-                  features={[
-                    'Flexible Mongo-backed questionnaire builder',
-                    'Supplier Scope 3 primary data request portal',
-                    'Automated anomaly & completeness validation',
-                    'Supplier carbon intensity benchmarking'
-                  ]}
-                />
-              }
-            />
+            <Route path="suppliers" element={<SuppliersModulePage />} />
+
 
             <Route
               path="ai-analytics"

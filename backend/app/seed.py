@@ -2,7 +2,9 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
 from app.models.tenant import Organization, Entity, Facility
 from app.models.auth import User, Role, Permission, UserOrgRole, role_permissions
+from app.models.carbon import EmissionFactor
 from app.models.lineage import LineageRecord
+
 from app.models.data_quality import DataQualityFlag
 from app.models.governance import EmissionFactorVersion, FormulaVersion, CalculationVersion
 from app.models.workflow import Task, Approval, Notification
@@ -155,7 +157,62 @@ def seed_db(db_session: Session = None):
             db.add(u_role)
             db.commit()
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, and superadmin!")
+        # 5. Seed Emission Factors Library (15+ Real Sample Countries + Scope 1/2/3 Categories)
+
+        sample_factors = [
+            # Scope 2 Grid Electricity (15 Countries)
+            ("GRID_ELEC_US", "US Grid Electricity (eGRID)", "v2024.1", 0.385, "kWh", "United States", "Scope 2", "Grid Electricity (Location-Based)", "eGRID 2024"),
+            ("GRID_ELEC_CA", "Canada Grid Electricity", "v2024.1", 0.120, "kWh", "Canada", "Scope 2", "Grid Electricity (Location-Based)", "Environment Canada"),
+            ("GRID_ELEC_UK", "UK National Grid Electricity", "v2024.1", 0.207, "kWh", "United Kingdom", "Scope 2", "Grid Electricity (Location-Based)", "DEFRA 2024"),
+            ("GRID_ELEC_DE", "Germany Grid Electricity", "v2024.1", 0.375, "kWh", "Germany", "Scope 2", "Grid Electricity (Location-Based)", "UBA Germany"),
+            ("GRID_ELEC_FR", "France Nuclear-Dominant Grid", "v2024.1", 0.052, "kWh", "France", "Scope 2", "Grid Electricity (Location-Based)", "ADEME France"),
+            ("GRID_ELEC_JP", "Japan Power Grid", "v2024.1", 0.462, "kWh", "Japan", "Scope 2", "Grid Electricity (Location-Based)", "MOE Japan"),
+            ("GRID_ELEC_CN", "China Regional Grid", "v2024.1", 0.581, "kWh", "China", "Scope 2", "Grid Electricity (Location-Based)", "MEE China"),
+            ("GRID_ELEC_IN", "India National Grid", "v2024.1", 0.716, "kWh", "India", "Scope 2", "Grid Electricity (Location-Based)", "CEA India"),
+            ("GRID_ELEC_BR", "Brazil Hydro-Dominant Grid", "v2024.1", 0.085, "kWh", "Brazil", "Scope 2", "Grid Electricity (Location-Based)", "MCTI Brazil"),
+            ("GRID_ELEC_AU", "Australia NEM Grid", "v2024.1", 0.680, "kWh", "Australia", "Scope 2", "Grid Electricity (Location-Based)", "DISER Australia"),
+            ("GRID_ELEC_SG", "Singapore Grid Electricity", "v2024.1", 0.405, "kWh", "Singapore", "Scope 2", "Grid Electricity (Location-Based)", "EMA Singapore"),
+            ("GRID_ELEC_MX", "Mexico National Grid", "v2024.1", 0.430, "kWh", "Mexico", "Scope 2", "Grid Electricity (Location-Based)", "SEMARNAT"),
+            ("GRID_ELEC_IT", "Italy Power Grid", "v2024.1", 0.260, "kWh", "Italy", "Scope 2", "Grid Electricity (Location-Based)", "ISPRA Italy"),
+            ("GRID_ELEC_ES", "Spain Power Grid", "v2024.1", 0.175, "kWh", "Spain", "Scope 2", "Grid Electricity (Location-Based)", "MITECO Spain"),
+            ("GRID_ELEC_NL", "Netherlands Power Grid", "v2024.1", 0.310, "kWh", "Netherlands", "Scope 2", "Grid Electricity (Location-Based)", "RVO Netherlands"),
+
+            # Scope 1 Fuels & Processes
+            ("NAT_GAS_US", "Natural Gas Stationary Combustion", "v2024.1", 0.202, "kWh", "United States", "Scope 1", "Stationary Combustion", "EPA AP-42"),
+            ("DIESEL_MOBILE", "Diesel Fuel Mobile Combustion", "v2024.1", 2.680, "liter", "GLOBAL", "Scope 1", "Mobile Combustion", "DEFRA 2024"),
+            ("REFRIGERANT_R410A", "R-410A Fugitive Refrigerant", "v2024.1", 2088.0, "kg", "GLOBAL", "Scope 1", "Fugitive Emissions", "IPCC AR5"),
+
+            # Scope 3 Categories (15 GHG Protocol Categories)
+            ("SPEND_PURCHASED_GOODS", "Category 1: Purchased Goods & Services (Spend-Based)", "v2024.1", 0.450, "USD", "GLOBAL", "Scope 3", "Category 1: Purchased Goods", "EXIOBASE v3.8"),
+            ("SPEND_CAPITAL_GOODS", "Category 2: Capital Goods (Spend-Based)", "v2024.1", 0.620, "USD", "GLOBAL", "Scope 3", "Category 2: Capital Goods", "EXIOBASE v3.8"),
+            ("AIR_TRAVEL_LONG", "Category 6: Long-Haul Business Flight", "v2024.1", 0.150, "passenger-km", "GLOBAL", "Scope 3", "Category 6: Business Travel", "DEFRA 2024"),
+            ("WASTE_LANDFILL", "Category 5: Commercial Municipal Solid Waste", "v2024.1", 0.380, "kg", "GLOBAL", "Scope 3", "Category 5: Waste Generated", "DEFRA 2024"),
+        ]
+
+        factor_objs = {}
+        for f_key, f_name, f_ver, f_val, f_unit, f_country, f_scope, f_cat, f_src in sample_factors:
+            ef = db.query(EmissionFactor).filter(EmissionFactor.factor_key == f_key).first()
+            if not ef:
+                ef = EmissionFactor(
+                    factor_key=f_key,
+                    name=f_name,
+                    version_tag=f_ver,
+                    co2e_factor=f_val,
+                    unit=f_unit,
+                    country=f_country,
+                    scope=f_scope,
+                    category=f_cat,
+                    source_library=f_src,
+                    org_id=org.id,
+                    created_by=admin_user.id
+                )
+                db.add(ef)
+                db.flush()
+            factor_objs[f_key] = ef
+
+        db.commit()
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, and superadmin!")
+
     finally:
         if should_close:
             db.close()

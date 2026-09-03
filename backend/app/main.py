@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
 from app.modules.admin.routes import router as admin_router
+from app.modules.carbon.routes import router as carbon_router
 from app.seed import seed_db
 
 app = FastAPI(
@@ -33,6 +34,8 @@ def health_check():
 
 # Include Business Modules
 app.include_router(admin_router, prefix=settings.API_V1_STR)
+app.include_router(carbon_router, prefix=settings.API_V1_STR)
+
 
 if __name__ == "__main__":
     import uvicorn

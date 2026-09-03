@@ -4,12 +4,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Shell } from './core/components/Shell';
 import { LoginPage } from './modules/auth/LoginPage';
 import { AdminPage } from './modules/admin/AdminPage';
+import { CarbonAccountingPage } from './modules/carbon/CarbonAccountingPage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
 import { useAuthStore } from './core/store/authStore';
 import { 
   LayoutDashboard, Factory, Package, Users, Sparkles, 
   TrendingDown, FileCheck, Coins, ShieldCheck, FileSearch, Database 
 } from 'lucide-react';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,23 +65,8 @@ export const App: React.FC = () => {
               }
             />
 
-            <Route
-              path="carbon"
-              element={
-                <PlaceholderModulePage
-                  title="Enterprise Carbon Accounting"
-                  moduleNumber={1}
-                  description="Scope 1, Scope 2, and Scope 3 activity data collection, emission factor library, and calculation engine."
-                  icon={Factory}
-                  features={[
-                    'Scope 1 Direct Stationary & Mobile Combustion',
-                    'Scope 2 Location & Market-Based Electricity',
-                    'Emission Factor Library with Version Control',
-                    'Lineage-backed reproducible calculations'
-                  ]}
-                />
-              }
-            />
+            <Route path="carbon" element={<CarbonAccountingPage />} />
+
 
             <Route
               path="products"

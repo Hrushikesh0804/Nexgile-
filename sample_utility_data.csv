@@ -1,0 +1,6 @@
+kwh_used,fuel_type,scope_type,unit_type,category
+45000,Natural Gas,Scope 1,m3,Stationary Combustion
+1250,Diesel Fuel,Scope 1,liters,Mobile Fleet
+185000,Electricity Grid,Scope 2,kWh,Location-Based Grid
+8200,LPG Gas,Scope 1,kg,Stationary Combustion
+95000,Purchased Steam,Scope 2,kWh,District Heating

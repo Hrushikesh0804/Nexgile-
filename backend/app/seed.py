@@ -152,28 +152,48 @@ def seed_db(db_session: Session = None):
             db.commit()
             db.refresh(facility_b)
 
-        # 4. Seed Default SuperAdmin User
-        admin_user = db.query(User).filter(User.email == "admin@nexgile.com").first()
-        if not admin_user:
-            admin_user = User(
-                email="admin@nexgile.com",
-                hashed_password=get_password_hash("AdminPass123!"),
-                full_name="Platform SuperAdmin",
-                is_active=True,
-                is_superadmin=True,
-                default_org_id=org.id
-            )
-            db.add(admin_user)
-            db.commit()
-            db.refresh(admin_user)
+        # 4. Seed Default Users for All Roles
+        demo_accounts = [
+            ("admin@nexgile.com", "Platform SuperAdmin", "SuperAdmin", True),
+            ("cso@nexgile.com", "Chief Sustainability Officer", "CSO", False),
+            ("analyst@nexgile.com", "Lead Sustainability Analyst", "SustainabilityAnalyst", False),
+            ("facility@nexgile.com", "Austin Plant Manager", "FacilityManager", False),
+            ("procurement@nexgile.com", "Global Procurement Lead", "ProcurementUser", False),
+            ("finance@nexgile.com", "Carbon Finance Director", "FinanceUser", False),
+            ("supplier@nexgile.com", "EcoMaterials Ltd Vendor", "Supplier", False),
+            ("auditor@nexgile.com", "Independent Assurance Lead", "Auditor", False),
+            ("consultant@nexgile.com", "Decarb Advisory Consultant", "Consultant", False),
+        ]
 
-            u_role = UserOrgRole(
-                user_id=admin_user.id,
-                org_id=org.id,
-                role_id=super_role.id
-            )
-            db.add(u_role)
-            db.commit()
+        admin_user = None
+        for email_addr, full_name, r_name, is_super in demo_accounts:
+            user_obj = db.query(User).filter(User.email == email_addr).first()
+            if not user_obj:
+                user_obj = User(
+                    email=email_addr,
+                    hashed_password=get_password_hash("AdminPass123!"),
+                    full_name=full_name,
+                    is_active=True,
+                    is_superadmin=is_super,
+                    default_org_id=org.id
+                )
+                db.add(user_obj)
+                db.commit()
+                db.refresh(user_obj)
+
+                assigned_role = role_objs.get(r_name)
+                if assigned_role:
+                    u_role = UserOrgRole(
+                        user_id=user_obj.id,
+                        org_id=org.id,
+                        role_id=assigned_role.id
+                    )
+                    db.add(u_role)
+                    db.commit()
+
+            if email_addr == "admin@nexgile.com":
+                admin_user = user_obj
+
 
         # 5. Seed Emission Factors Library (15+ Real Sample Countries + Scope 1/2/3 Categories)
 

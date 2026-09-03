@@ -97,21 +97,10 @@ export const App: React.FC = () => {
             <Route path="compliance" element={<ComplianceModulePage />} />
 
 
-            <Route
-              path="carbon-finance"
-              element={
-                <PlaceholderModulePage
-                  title="Dashboards & Carbon Finance"
-                  moduleNumber={5}
-                  description="Internal carbon pricing, carbon budgets, carbon credits/offsets portfolio, and green investment tracking."
-                  icon={Coins}
-                  features={[
-                    'Internal Carbon Pricing (ICP) engine',
-                    'Entity & Department carbon budgeting',
-                    'Carbon credit & offset registry tracking',
             <Route path="executive-dashboard" element={<DashboardsFinanceModulePage />} />
             <Route path="operational-drilldown" element={<DashboardsFinanceModulePage />} />
             <Route path="carbon-finance" element={<DashboardsFinanceModulePage />} />
+
 
 
             <Route path="data-quality" element={<DataQualityConsolePage />} />

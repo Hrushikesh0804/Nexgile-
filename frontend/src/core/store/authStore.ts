@@ -4,7 +4,8 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  is_active: bool;
+  is_active: boolean;
+
   is_superadmin: boolean;
   default_org_id?: string;
   role?: string;

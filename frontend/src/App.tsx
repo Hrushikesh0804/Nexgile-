@@ -9,7 +9,9 @@ import { ProductsModulePage } from './modules/products/ProductsModulePage';
 import { SuppliersModulePage } from './modules/suppliers/SuppliersModulePage';
 import { AIAnalyticsModulePage } from './modules/ai_analytics/AIAnalyticsModulePage';
 import { DashboardsFinanceModulePage } from './modules/dashboards/DashboardsFinanceModulePage';
+import { ComplianceModulePage } from './modules/compliance/ComplianceModulePage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 
 
 
@@ -86,23 +88,8 @@ export const App: React.FC = () => {
             <Route path="reduction-planning" element={<AIAnalyticsModulePage />} />
 
 
-            <Route
-              path="compliance"
-              element={
-                <PlaceholderModulePage
-                  title="Regulatory Compliance & Disclosure"
-                  moduleNumber={6}
-                  description="Automated disclosure generation for CSRD/ESRS, CBAM, TCFD, EU Taxonomy, SEC, and CDP backed by lineage."
-                  icon={FileCheck}
-                  features={[
-                    'CSRD / ESRS double materiality & reporting',
-                    'CBAM import emission certificate calculator',
-                    'TCFD climate risk disclosure alignment',
-                    'Lineage-backed audit exports for external assurance'
-                  ]}
-                />
-              }
-            />
+            <Route path="compliance" element={<ComplianceModulePage />} />
+
 
             <Route
               path="carbon-finance"

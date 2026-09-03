@@ -3,13 +3,16 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
 from app.models.tenant import Organization, Entity, Facility
 from app.models.auth import User, Role, Permission, UserOrgRole, role_permissions
-from app.models.carbon import EmissionFactor
+from app.models.carbon import EmissionFactor, ActivityData, Calculation
 from app.models.products import Product, SKU, Material, BOM, LCA, PCF
+
 from app.models.suppliers import Supplier, Questionnaire, Submission, Scorecard
 from app.models.ai_analytics import ScenarioForecast, ReductionInitiative, DocumentIngestion
 from app.models.finance import CarbonBudget, InternalCarbonPrice, CreditOffset, ProjectEconomics, TCFDFinancialImpact
+from app.models.compliance import Framework, Disclosure, DisclosureDataPoint, CBAMDeclaration, EUTaxonomyAlignment
 from app.models.lineage import LineageRecord
 from app.database import mongo_db
+
 
 
 
@@ -511,10 +514,65 @@ def seed_db(db_session: Session = None):
             db.add_all([budget, icp_shadow, icp_fee, offset1, offset2, tcfd1])
             db.commit()
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, and superadmin!")
+        # 10. Seed Regulatory Compliance Frameworks & Disclosures
+        fw_csrd = db.query(Framework).filter(Framework.name == "CSRD_ESRS").first()
+        if not fw_csrd:
+            fw_csrd = Framework(name="CSRD_ESRS", version="ESRS-2024.1", description="EU Corporate Sustainability Reporting Directive", org_id=org.id, created_by=admin_user.id)
+            fw_cbam = Framework(name="CBAM", version="EU-2026.1", description="EU Carbon Border Adjustment Mechanism", org_id=org.id, created_by=admin_user.id)
+            fw_tcfd = Framework(name="TCFD", version="2023.1", description="Task Force on Climate-related Financial Disclosures", org_id=org.id, created_by=admin_user.id)
+            fw_tax = Framework(name="EU_TAXONOMY", version="2024.2", description="EU Sustainable Finance Taxonomy Alignment", org_id=org.id, created_by=admin_user.id)
+            fw_sec = Framework(name="SEC_CLIMATE", version="SEC-2024.1", description="US SEC Climate-Related Disclosure Rules", org_id=org.id, created_by=admin_user.id)
+            fw_cdp = Framework(name="CDP", version="2025.1", description="Carbon Disclosure Project Climate Questionnaire", org_id=org.id, created_by=admin_user.id)
+            db.add_all([fw_csrd, fw_cbam, fw_tcfd, fw_tax, fw_sec, fw_cdp])
+            db.commit()
+
+        # Seed sample CSRD disclosure draft
+        disc_csrd = db.query(Disclosure).filter(Disclosure.reporting_year == 2026).first()
+        if not disc_csrd and fw_csrd:
+            disc_csrd = Disclosure(
+                framework_id=fw_csrd.id,
+                reporting_year=2026,
+                status="DRAFT",
+                double_materiality_json={
+                    "climate_change_mitigation": {"impact_materiality": True, "financial_materiality": True, "score": "HIGH"},
+                    "circular_economy": {"impact_materiality": True, "financial_materiality": False, "score": "MEDIUM"}
+                },
+                transition_plan_json={
+                    "target_year": 2030,
+                    "interim_reduction_pct": 45.0,
+                    "decarbonization_levers": ["Scope 2 PPA Solar", "Scope 3 Supplier Engagement"],
+                    "sbti_aligned": True
+                },
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add(disc_csrd)
+            db.commit()
+
+            # Seed sample DataPoints with XBRL tags
+            calc_sample = db.query(Calculation).first()
+            if calc_sample:
+                dp1 = DisclosureDataPoint(
+                    disclosure_id=disc_csrd.id,
+                    section="ESRS E1-6 Gross Scopes 1, 2, 3 Emissions",
+                    requirement_code="ESRS_E1_6_SCOPE1",
+                    xbrl_tag="esrs-e1:GrossScope1GHGEmissions",
+                    source_record_type="CALCULATION",
+                    source_record_id=calc_sample.id,
+                    lineage_id=calc_sample.lineage_id,
+                    value_json={"co2e_kg": calc_sample.calculated_co2e_kg, "scope": "Scope 1"},
+                    verification_status="VERIFIED_INTERNAL",
+                    org_id=org.id,
+                    created_by=admin_user.id
+                )
+                db.add(dp1)
+                db.commit()
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, regulatory frameworks, and superadmin!")
     finally:
         if should_close:
             db.close()
+
 
 
 

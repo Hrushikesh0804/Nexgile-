@@ -10,6 +10,8 @@ from app.models.suppliers import Supplier, Questionnaire, Submission, Scorecard
 from app.models.ai_analytics import ScenarioForecast, ReductionInitiative, DocumentIngestion
 from app.models.finance import CarbonBudget, InternalCarbonPrice, CreditOffset, ProjectEconomics, TCFDFinancialImpact
 from app.models.compliance import Framework, Disclosure, DisclosureDataPoint, CBAMDeclaration, EUTaxonomyAlignment
+from app.models.integrations import IntegrationConnection, FieldMapping, SyncRun, ReconciliationLog
+
 from app.models.lineage import LineageRecord
 from app.database import mongo_db
 
@@ -568,7 +570,54 @@ def seed_db(db_session: Session = None):
                 db.add(dp1)
                 db.commit()
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, regulatory frameworks, and superadmin!")
+        # 11. Seed Integration Connections & Field Mappings (Module 7)
+        conn_csv = db_session.query(IntegrationConnection).filter(IntegrationConnection.name == "Utility Meter CSV Feed").first()
+        if not conn_csv:
+            org_item = db_session.query(Organization).first()
+            admin_item = db_session.query(User).filter(User.email == "admin@nexgile.com").first()
+
+            conn_csv = IntegrationConnection(
+                id="conn-csv-001",
+                name="Utility Meter CSV Feed",
+                system_type="CSV_FILE",
+                credentials_vault_ref="vault://enc_csv_key_stub",
+                status="ACTIVE",
+                org_id=org_item.id,
+                created_by=admin_item.id
+            )
+            db_session.add(conn_csv)
+
+            conn_sap = IntegrationConnection(
+                id="conn-sap-001",
+                name="SAP S/4HANA ERP Connector",
+                system_type="REST_API",
+                credentials_vault_ref="vault://enc_sap_oauth_token",
+                status="ACTIVE",
+                org_id=org_item.id,
+                created_by=admin_item.id
+            )
+            db_session.add(conn_sap)
+            db_session.commit()
+
+            mapping_csv = FieldMapping(
+                id="map-csv-001",
+                connection_id=conn_csv.id,
+                target_entity="ActivityData",
+                mapping_json={
+                    "kwh_used": "quantity",
+                    "fuel_type": "activity_type",
+                    "scope_type": "scope",
+                    "unit_type": "unit"
+                },
+                org_id=org_item.id,
+                created_by=admin_item.id
+            )
+            db_session.add(mapping_csv)
+            db_session.commit()
+
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, regulatory frameworks, integration connections, and superadmin!")
+
     finally:
         if should_close:
             db.close()

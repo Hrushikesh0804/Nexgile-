@@ -10,7 +10,9 @@ import { SuppliersModulePage } from './modules/suppliers/SuppliersModulePage';
 import { AIAnalyticsModulePage } from './modules/ai_analytics/AIAnalyticsModulePage';
 import { DashboardsFinanceModulePage } from './modules/dashboards/DashboardsFinanceModulePage';
 import { ComplianceModulePage } from './modules/compliance/ComplianceModulePage';
+import { IntegrationsModulePage } from './modules/integrations/IntegrationsModulePage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 
 
 
@@ -144,23 +146,8 @@ export const App: React.FC = () => {
               }
             />
 
-            <Route
-              path="integrations"
-              element={
-                <PlaceholderModulePage
-                  title="Data Integration Layer"
-                  moduleNumber={7}
-                  description="Connectors for REST APIs, CSV imports, utility webhooks, field mapping, and sync pipeline."
-                  icon={Database}
-                  features={[
-                    'Utility provider API connectors',
-                    'Bulk CSV / Excel import wizard',
-                    'ERP & Finance integration stubs',
-                    'Field mapping & data reconciliation'
-                  ]}
-                />
-              }
-            />
+            <Route path="integrations" element={<IntegrationsModulePage />} />
+
 
             <Route path="admin" element={<AdminPage />} />
           </Route>

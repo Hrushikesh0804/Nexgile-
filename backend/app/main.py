@@ -10,6 +10,7 @@ from app.modules.ai_analytics.routes import router as ai_analytics_router
 from app.modules.dashboards.routes import router as dashboards_router
 from app.modules.finance.routes import router as finance_router
 from app.modules.compliance.routes import router as compliance_router
+from app.modules.integrations.routes import router as integrations_router
 from app.seed import seed_db
 
 app = FastAPI(
@@ -47,6 +48,7 @@ app.include_router(ai_analytics_router, prefix=settings.API_V1_STR)
 app.include_router(dashboards_router, prefix=settings.API_V1_STR)
 app.include_router(finance_router, prefix=settings.API_V1_STR)
 app.include_router(compliance_router, prefix=settings.API_V1_STR)
+app.include_router(integrations_router, prefix=settings.API_V1_STR)
 
 
 

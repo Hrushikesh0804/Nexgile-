@@ -11,7 +11,11 @@ import { AIAnalyticsModulePage } from './modules/ai_analytics/AIAnalyticsModuleP
 import { DashboardsFinanceModulePage } from './modules/dashboards/DashboardsFinanceModulePage';
 import { ComplianceModulePage } from './modules/compliance/ComplianceModulePage';
 import { IntegrationsModulePage } from './modules/integrations/IntegrationsModulePage';
+import { DataQualityConsolePage } from './modules/hardening/DataQualityConsolePage';
+import { EvidenceAuditBrowserPage } from './modules/hardening/EvidenceAuditBrowserPage';
+import { BulkOperationsPage } from './modules/hardening/BulkOperationsPage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 
 
 
@@ -110,41 +114,10 @@ export const App: React.FC = () => {
             <Route path="carbon-finance" element={<DashboardsFinanceModulePage />} />
 
 
-            <Route
-              path="data-quality"
-              element={
-                <PlaceholderModulePage
-                  title="Data Quality & Governance Console"
-                  moduleNumber={8}
-                  description="Platform-wide completeness scoring, confidence ratings, and anomaly flag remediation."
-                  icon={ShieldCheck}
-                  features={[
-                    'Completeness index by Facility & Entity',
-                    'Source data confidence level breakdown',
-                    'Active data anomaly flags & workflow review',
-                    'Validation status overview'
-                  ]}
-                />
-              }
-            />
+            <Route path="data-quality" element={<DataQualityConsolePage />} />
+            <Route path="evidence-audit" element={<EvidenceAuditBrowserPage />} />
+            <Route path="bulk-operations" element={<BulkOperationsPage />} />
 
-            <Route
-              path="evidence-audit"
-              element={
-                <PlaceholderModulePage
-                  title="Evidence & Audit Lineage Browser"
-                  moduleNumber={8}
-                  description="Immutable audit trail browser showing data lineage from raw invoice/meter to report disclosure."
-                  icon={FileSearch}
-                  features={[
-                    'Full calculation lineage trail inspector',
-                    'Factor & formula version history viewer',
-                    'Document evidence metadata browser',
-                    'Third-party auditor export package'
-                  ]}
-                />
-              }
-            />
 
             <Route path="integrations" element={<IntegrationsModulePage />} />
 

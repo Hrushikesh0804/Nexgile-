@@ -16,10 +16,12 @@ import {
   LogOut, 
   Building2, 
   Layers,
-  ChevronDown
+  ChevronDown,
+  Search
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
+import { GlobalSearchModal } from '../../modules/hardening/GlobalSearchModal';
 import apiClient from '../api/client';
 
 const navigationItems = [
@@ -38,8 +40,10 @@ const navigationItems = [
 ];
 
 export const Shell: React.FC = () => {
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
   const { user, logout } = useAuthStore();
   const { 
     organizations, 
@@ -173,12 +177,24 @@ export const Shell: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Lineage Engine Active
-            </span>
-          </div>
-        </header>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700/60 transition-all"
+              >
+                <Search className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Search platform...</span>
+                <kbd className="px-1.5 py-0.5 bg-slate-900 text-[10px] rounded text-slate-400 border border-slate-700">⌘K</kbd>
+              </button>
+
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Lineage Engine Active
+              </span>
+            </div>
+          </header>
+
+          <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
 
         {/* ROUTE CONTENT PAGE */}
         <main className="flex-1 overflow-y-auto p-6 bg-[#0B0F17]">

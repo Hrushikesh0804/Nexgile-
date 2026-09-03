@@ -11,8 +11,11 @@ from app.models.ai_analytics import ScenarioForecast, ReductionInitiative, Docum
 from app.models.finance import CarbonBudget, InternalCarbonPrice, CreditOffset, ProjectEconomics, TCFDFinancialImpact
 from app.models.compliance import Framework, Disclosure, DisclosureDataPoint, CBAMDeclaration, EUTaxonomyAlignment
 from app.models.integrations import IntegrationConnection, FieldMapping, SyncRun, ReconciliationLog
-
+from app.models.hardening import SavedSearchQuery, ScheduledReport, LineageVerification, AdminAuditLog
+from app.models.data_quality import DataQualityFlag
 from app.models.lineage import LineageRecord
+
+
 from app.database import mongo_db
 
 
@@ -616,7 +619,35 @@ def seed_db(db_session: Session = None):
             db_session.commit()
 
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, regulatory frameworks, integration connections, and superadmin!")
+        # 12. Seed Platform Hardening Data (Module 8)
+        audit_log = db_session.query(AdminAuditLog).first()
+        if not audit_log:
+            log1 = AdminAuditLog(
+                action="INITIAL_SEED_COMPLETED",
+                target_type="Platform",
+                target_id="nexgile-decarbx-v1.0",
+                details_json={"message": "All 8 modules successfully initialized and seeded"},
+                org_id=org_item.id,
+                created_by=admin_item.id
+            )
+            db_session.add(log1)
+
+            # Seed a sample Data Quality Flag for Console testing
+            dq_flag = DataQualityFlag(
+                target_entity_type="ActivityData",
+                target_entity_id="act-seed-001",
+                flag_type="COMPLEATENESS_LOW",
+                message="Activity data record is missing custom sub-metering metadata tag",
+                status="OPEN",
+                severity="MEDIUM",
+                org_id=org_item.id,
+                created_by=admin_item.id
+            )
+            db_session.add(dq_flag)
+            db_session.commit()
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, carbon budgets, regulatory frameworks, integration connections, platform audit logs, and superadmin!")
+
 
     finally:
         if should_close:

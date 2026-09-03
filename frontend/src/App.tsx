@@ -7,7 +7,9 @@ import { AdminPage } from './modules/admin/AdminPage';
 import { CarbonAccountingPage } from './modules/carbon/CarbonAccountingPage';
 import { ProductsModulePage } from './modules/products/ProductsModulePage';
 import { SuppliersModulePage } from './modules/suppliers/SuppliersModulePage';
+import { AIAnalyticsModulePage } from './modules/ai_analytics/AIAnalyticsModulePage';
 import { PlaceholderModulePage } from './core/components/PlaceholderModulePage';
+
 
 
 import { useAuthStore } from './core/store/authStore';
@@ -78,41 +80,9 @@ export const App: React.FC = () => {
             <Route path="suppliers" element={<SuppliersModulePage />} />
 
 
-            <Route
-              path="ai-analytics"
-              element={
-                <PlaceholderModulePage
-                  title="AI Analytics & Decarbonization"
-                  moduleNumber={4}
-                  description="Machine learning forecasting, OCR document extraction pipeline, anomaly detection, and what-if Monte Carlo runs."
-                  icon={Sparkles}
-                  features={[
-                    'Invoice & Utility Meter OCR document extraction',
-                    'Automated data anomaly detection flags',
-                    'Emissions forecasting models',
-                    'Isolated Monte Carlo scenario simulations'
-                  ]}
-                />
-              }
-            />
+            <Route path="ai-analytics" element={<AIAnalyticsModulePage />} />
+            <Route path="reduction-planning" element={<AIAnalyticsModulePage />} />
 
-            <Route
-              path="reduction-planning"
-              element={
-                <PlaceholderModulePage
-                  title="Reduction Planning & MAC Curve"
-                  moduleNumber={4}
-                  description="Marginal Abatement Cost (MAC) curve analysis, initiative tracking, and target progress forecasting."
-                  icon={TrendingDown}
-                  features={[
-                    'Marginal Abatement Cost (MAC) curve generation',
-                    'Decarbonization initiative tracking',
-                    'SBTi target alignment monitoring',
-                    'Capex / Opex ROI calculator'
-                  ]}
-                />
-              }
-            />
 
             <Route
               path="compliance"

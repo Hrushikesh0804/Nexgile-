@@ -5,8 +5,10 @@ from app.models.auth import User, Role, Permission, UserOrgRole, role_permission
 from app.models.carbon import EmissionFactor
 from app.models.products import Product, SKU, Material, BOM, LCA, PCF
 from app.models.suppliers import Supplier, Questionnaire, Submission, Scorecard
+from app.models.ai_analytics import ScenarioForecast, ReductionInitiative, DocumentIngestion
 from app.models.lineage import LineageRecord
 from app.database import mongo_db
+
 
 
 
@@ -372,10 +374,79 @@ def seed_db(db_session: Session = None):
             q.mongo_ref_id = str(mongo_res.inserted_id)
             db.commit()
 
-        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, and superadmin!")
+        # 8. Seed Reduction Initiatives & OCR Drafts
+        init_solar = db.query(ReductionInitiative).filter(ReductionInitiative.title == "Texas Plant Rooftop Solar PV Installation").first()
+        if not init_solar:
+            init_solar = ReductionInitiative(
+                title="Texas Plant Rooftop Solar PV Installation",
+                description="Install 1.5MW rooftop solar PV array to displace 45% of Scope 2 grid electricity.",
+                category="Renewable Energy",
+                expected_reduction_co2e_kg=350000.0,
+                capex_cost_usd=450000.0,
+                opex_cost_usd=12000.0,
+                abatement_cost_per_tco2e=32.50, # $32.50 / tCO2e avoided
+                timeline_year=2026,
+                owner_user_id=admin_user.id,
+                roi_pct=22.4,
+                status="IN_PROGRESS",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            init_heat = ReductionInitiative(
+                title="Industrial Waste Heat Recovery Retrofit",
+                description="Capture furnace exhaust heat for facility space heating and hot water pre-heating.",
+                category="Energy Efficiency",
+                expected_reduction_co2e_kg=180000.0,
+                capex_cost_usd=120000.0,
+                opex_cost_usd=5000.0,
+                abatement_cost_per_tco2e=-15.20, # Negative cost! Saves money over lifespan ($ -15.20 / tCO2e)
+                timeline_year=2025,
+                owner_user_id=admin_user.id,
+                roi_pct=38.0,
+                status="PLANNED",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            init_mat = ReductionInitiative(
+                title="Switch Enclosures to 100% Recycled Eco-Aluminum",
+                description="Replace virgin aluminum 6061 with certified 100% post-consumer recycled aluminum alloy.",
+                category="Material Circularity",
+                expected_reduction_co2e_kg=220000.0,
+                capex_cost_usd=60000.0,
+                opex_cost_usd=15000.0,
+                abatement_cost_per_tco2e=18.40,
+                timeline_year=2026,
+                owner_user_id=admin_user.id,
+                roi_pct=19.5,
+                status="PLANNED",
+                org_id=org.id,
+                created_by=admin_user.id
+            )
+            db.add_all([init_solar, init_heat, init_mat])
+            db.commit()
+
+        # Seed AI Anomaly Flag
+        anom = db.query(DataQualityFlag).filter(DataQualityFlag.flag_type == "AI_ANOMALY").first()
+        if not anom:
+            anom = DataQualityFlag(
+                org_id=org.id,
+                target_entity_type="ActivityData",
+                target_entity_id="act-sample-001",
+                flag_type="AI_ANOMALY",
+                message="Field quantity 12500.0 kWh for Natural Gas exceeds 3-sigma historical mean (3200.0 kWh) by +290%. AI recommends verifying meter reading or checking for pipeline leakage.",
+                severity="HIGH",
+                status="OPEN",
+                created_by=admin_user.id
+            )
+            db.add(anom)
+            db.commit()
+
+
+        print("Database successfully seeded with initial roles, permissions, default org, facilities, emission factors, materials, products, suppliers, reduction initiatives, and superadmin!")
     finally:
         if should_close:
             db.close()
+
 
 
 

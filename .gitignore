@@ -1,8 +1,7 @@
-node_modules/
-.env
-.env.*
-dist/
-build/
+*.db
+*.sqlite3
 __pycache__/
-.venv/
-venv/
+*.pyc
+node_modules/
+dist/
+.env
